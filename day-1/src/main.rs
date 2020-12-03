@@ -9,12 +9,15 @@ fn main() {
     let length = contents.len();
     'outer: for i in 0..length {
         for j in i..length {
+          for k in j..length {
            let int: i32 = contents[i].parse::<i32>().unwrap();
            let jnt: i32 = contents[j].parse::<i32>().unwrap();
-           if int + jnt == 2020 {
-               let output = int * jnt;
-               println!("{}", output);
-               break 'outer;
+           let knt: i32 = contents[k].parse::<i32>().unwrap();
+             if int + jnt + knt == 2020 {
+                 let output = int * jnt * knt;
+                 println!("{}", output);
+                 break 'outer;
+               }
            }
         }
     }
