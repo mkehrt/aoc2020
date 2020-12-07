@@ -13,23 +13,29 @@ fn main() {
     let input = Path::new(&args[1]);
     let file = File::open(input).unwrap();
     let reader = BufReader::new(file);
-    let mut max = 0;
+    let mut seats = Vec::new();
     let lines = reader.lines().map(|l| l.unwrap());
     for line in lines {
         let mut id = 0;
         let chars = line.chars();
         for char in chars {
-          id *= 2;
+            id *= 2;
             if (char == 'F') || (char == 'L') {
                 // Nothing
             } else if (char == 'B') || (char == 'R') {
                 id += 1;
             }
         }
-        println!("{} -> {}", line, id);
-        if id > max {
-            max = id
+        seats.push(id);
+    }
+    seats.sort();
+    let pairs = seats.windows(2);
+    for pair in pairs {
+        if let &[low, high] = pair {
+            if high != low + 1 {
+                println!("{}", low + 1);
+                break;
+            }
         }
     }
-    println!("{}", max);
 }
