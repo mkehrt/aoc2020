@@ -30,6 +30,11 @@ fn main() {
         if let [outer_str, inner_str] = line.split("contain").collect::<Vec<&str>>()[..] {
             let captures = outer_re.captures_iter(outer_str).next().unwrap();
             let (outer_adj, outer_color) = (captures[1].to_string(), captures[2].to_string());
+            let outer = Bag {
+                count: 1,
+                adj: outer_adj.clone(),
+                color: outer_color.clone(),
+            };
             println!("OUTER: {:?}, {:?}", outer_adj, outer_color);
             for captures in inner_re.captures_iter(inner_str) {
                 let (count, adj, color) = (
@@ -38,47 +43,44 @@ fn main() {
                     captures[3].to_string(),
                 );
                 println!("INNER: {:?}, {:?}", adj, color);
-                let inner = Bag { count: 1, adj, color };
-                let outer = Bag {
-                    count,
-                    adj: outer_adj.clone(),
-                    color: outer_color.clone(),
-                };
-                let mut outers = topology.get(&inner).unwrap_or(&HashSet::new()).clone();
-                outers.insert(outer.clone());
-                topology.insert(inner, outers);
+                let inner = Bag { count, adj, color };
+                let mut inners = topology.get(&outer).unwrap_or(&HashSet::new()).clone();
+                inners.insert(inner.clone());
+                topology.insert(outer.clone(), inners);
             }
         }
     }
 
     println!("TOP: {:?}", topology);
 
-    let mut seen = HashSet::new();
     let mine = Bag {
         count: 1,
         adj: "shiny".to_string(),
         color: "gold".to_string(),
     };
-    let mut todo = vec![mine];
 
-    while !todo.is_empty() {
-        println!("TODO: {:?}", todo);
-        let inner = todo.pop().unwrap();
-        let outers = match topology.get(&inner) {
-            Some(o) => o,
-            None => continue,
+    let total = total_bags(&topology, &mine);
+    println!("{}", total - 1);
+}
+
+fn total_bags(topology: &HashMap<Bag, HashSet<Bag>>, outer: &Bag) -> i64 {
+    let mut total: i64 = outer.count;
+
+        let outer_key = Bag {
+            count: 1,
+            ..outer.clone()
         };
-        for outer in outers {
-            let outer = Bag {
-                count: 1,
-                ..outer.clone()
-            };
-            if !seen.contains(&outer) {
-                seen.insert(outer.clone());
-                todo.push(outer.clone());
-            }
-        }
+
+
+    let empty: HashSet<Bag> = HashSet::new();
+    let inners = match topology.get(&outer_key) {
+        Some(i) => i,
+        None => &empty,
+    };
+
+    for inner in inners {
+        total = total + (outer.count * total_bags(topology, &inner));
     }
 
-    println!("{}", seen.len());
+    total
 }
